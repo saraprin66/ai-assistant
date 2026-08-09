@@ -12,7 +12,8 @@ def load_documents():
         ("Java is a high-level programming language.", "source2"),
         ("JavaScript is used for web development.", "source3"),
         ("C++ is a general-purpose programming language.", "source4"),
-        ("Ruby is a dynamic programming language.", "source5")
+        ("Ruby is a dynamic programming language.", "source5"),
+        ("Javascript is underrated.", "source6")
     ]
     return documents
 
@@ -49,7 +50,9 @@ def insert_document(content, embedding, source):
     conn.close()
 
 
+
 def search_similar(query, top_k=3):
+    THRESHOLD = 0.5
     embedding_query = get_embedding(query)
 
     conn = get_connection()
@@ -73,10 +76,14 @@ def search_similar(query, top_k=3):
             [embedding_query],
             [doc_embedding]
         )[0][0]
+        if score >= THRESHOLD:
+            results.append((content, score, source))
+           
+        else:
+            print(f"Document '{content}' skipped due to low similarity score: {score}")
+    results.sort(key=lambda x: x[1], reverse=True)  
 
-        results.append((content, score, source))
-
-    results.sort(key=lambda x: x[1], reverse=True)
+    
 
     cur.close()
     conn.close()

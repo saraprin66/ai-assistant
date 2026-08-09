@@ -32,6 +32,10 @@ while True:
 
     search_results = search_similar(user_input)
 
+    if not search_results:
+        print("No similar documents found in the database.")
+        continue
+
     context="\n\n".join([result[0] for result in search_results])
 
     prompt= f"""
