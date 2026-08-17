@@ -1,6 +1,6 @@
 import requests
 import os
-
+import json
 
 class LLMClient:
 
@@ -15,7 +15,7 @@ class LLMClient:
 
     def generate(self, messages):
         data = {
-            "model": "llama-3.1-8b-instant",
+            "model": "openai/gpt-oss-20b",
             "messages": messages
         }
 
@@ -33,3 +33,37 @@ class LLMClient:
         result = response.json()
 
         return result["choices"][0]["message"]["content"]
+
+    def generate_stream(self, messages):
+        data = {
+            "model":"openai/gpt-oss-20b",
+            "messages": messages,
+            "stream": True
+        }
+
+        response = requests.post(
+            self.url,
+            headers=self.headers,
+            json=data,
+            stream=True
+        )
+
+        if response.status_code != 200:
+            raise Exception(
+                f"Error: {response.status_code} : {response.text}"
+            )
+
+        for line in response.iter_lines():
+            if line:
+                line = line.decode("utf-8")
+
+                if line.startswith("data: "):
+                    line = line[6:]
+                    if line == "[DONE]":
+                        break
+                    data = json.loads(line)
+
+                    content = data["choices"][0]["delta"].get("content")
+
+                    if content :
+                        yield content
