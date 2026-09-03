@@ -81,7 +81,18 @@ def search_similar(query, top_k=3):
            
         else:
             print(f"Document '{content}' skipped due to low similarity score: {score}")
-    results.sort(key=lambda x: x[1], reverse=True)  
+    results.sort(key=lambda x: x[1], reverse=True)
+    print("\n ---RETRIEVAL RESULTS ---")
+
+    for result in results[:10]:
+        print(
+            f"Score: {result[1]:.4F} |"
+            f"Source: {result[2]} | "
+            f"Page: {result[3].get('page')} | "
+            f"Content: {result[0][:200]}"
+        )  
+
+    print("-------------------------\n")
 
     
 

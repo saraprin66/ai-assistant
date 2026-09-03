@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from reranker import Reranker
 
 load_dotenv()
 
@@ -10,13 +12,28 @@ from embedder import Embedder
 from llm_client import LLMClient
 from rag_chatbot import RAGChatbot
 
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 database = Database()
 embedder = Embedder()
 llm_client = LLMClient()
+reranker = Reranker()
 
-chatbot = RAGChatbot(database, embedder, llm_client)
+chatbot = RAGChatbot(
+    database,
+    embedder,
+    llm_client,
+    reranker
+)
 
 
 class ChatRequest(BaseModel):
@@ -26,7 +43,9 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 def home():
-    return {"message": "ENSIASD Assistant API is running"}
+    return {
+        "message": "ENSIASD Assistant API is running"
+    }
 
 
 @app.post("/chat")
@@ -83,7 +102,7 @@ def chat_stream(request: ChatRequest):
                 request.question,
                 request.conversation_id
             ),
-            media_type="text/plain"
+            media_type="application/x-ndjson"
         )
 
     except Exception as e:
